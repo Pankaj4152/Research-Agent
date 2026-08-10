@@ -138,7 +138,6 @@ def ask_agent(prompt):
     ]
 
     while True:
-
         try:
             response = client.models.generate_content(
                 model="gemini-2.5-flash",
@@ -151,21 +150,13 @@ def ask_agent(prompt):
                 )
             )
         except errors.ClientError as error:
-
-            print(
-                "\nGemini API error:",
-                error.code,
-                "-",
-                error.message
-            )
-
+            print("\nGemini API error:", error.code, "-", error.message)
             if error.code == 429:
                 print(
                     "\nYou have exceeded the Gemini API quota. "
                     "Check your plan/billing at "
                     "https://ai.dev/rate-limit"
                 )
-
             return "Could not get a response from the model."
 
         # Save Gemini's complete response
