@@ -1,9 +1,11 @@
 import requests
 from google.genai import types
+from app.rag import search_local_docs
 
 # -------------------------
 # Real External API Tools
 # -------------------------
+
 
 def get_weather(city: str) -> str:
     """Fetch live real-time weather using Open-Meteo free API."""
@@ -89,6 +91,20 @@ tools = [
                     },
                     required=["query"]
                 )
+            ),
+            types.FunctionDeclaration(
+                name="search_local_docs",
+                description="Search internal knowledge base and local documents (e.g., RAG, architecture, concepts, internal knowledge)",
+                parameters=types.Schema(
+                    type="OBJECT",
+                    properties={
+                        "query": types.Schema(
+                            type="STRING",
+                            description="Search query to retrieve relevant paragraphs from internal vector document store"
+                        )
+                    },
+                    required=["query"]
+                )
             )
         ]
     )
@@ -98,6 +114,7 @@ tools = [
 tool_map = {
     "get_weather": get_weather,
     "search_wikipedia": search_wikipedia,
+    "search_local_docs": search_local_docs,
 }
 
 

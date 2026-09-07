@@ -56,23 +56,15 @@ def load_documents():
 # Chunk text
 # -------------------------
 
-def chunk_text(text, chunk_size=50):
-
+def chunk_text(text, chunk_size=300, overlap=50):
     chunks = []
-
-    for i in range(
-        0,
-        len(text),
-        chunk_size
-    ):
-
-        chunk = text[
-            i:i + chunk_size
-        ]
-
-        chunks.append(chunk)
-
+    step = max(1, chunk_size - overlap)
+    for i in range(0, len(text), step):
+        chunk = text[i:i + chunk_size].strip()
+        if chunk:
+            chunks.append(chunk)
     return chunks
+
 
 
 # -------------------------
@@ -234,9 +226,7 @@ def search_documents(
         distances[0],
         indices[0]
     ):
-
         chunk = all_chunks[index_position]
-
         results.append({
             "chunk": chunk,
             "distance": float(distance)
@@ -245,9 +235,35 @@ def search_documents(
     return results
 
 
+_cached_index = None
+_cached_chunks = None
+
+def search_local_docs(query: str, top_k: int = 3) -> str:
+    """Search internal/local knowledge base documents for relevant context."""
+    global _cached_index, _cached_chunks
+    try:
+        if _cached_index is None or _cached_chunks is None:
+            _cached_index, _cached_chunks = load_index()
+
+        results = search_documents(query, _cached_index, _cached_chunks, top_k=top_k)
+        if not results:
+            return f"No local documents found matching query: '{query}'."
+
+        formatted_outputs = []
+        for i, res in enumerate(results, 1):
+            chunk = res["chunk"]
+            formatted_outputs.append(
+                f"[Source Document: {chunk['filename']} | Chunk {chunk['chunk_id']}]\n{chunk['text']}"
+            )
+        return "\n\n".join(formatted_outputs)
+    except Exception as e:
+        return f"Error searching local document store: {str(e)}"
+
+
 # -------------------------
 # Main
 # -------------------------
+
 
 if __name__ == "__main__":
 

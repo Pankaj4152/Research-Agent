@@ -4,3 +4,5 @@ uvicorn
 google-genai
 requests
 httpx
+faiss-cpu
+sentence-transformers
