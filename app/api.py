@@ -1,6 +1,7 @@
 import uuid
 from fastapi import FastAPI, HTTPException, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from app.main import ask_agent, clear_session, get_session_history
@@ -36,7 +37,7 @@ class ResearchResponse(BaseModel):
     session_id: str
 
 
-@app.get("/")
+@app.get("/api/health")
 def health_check():
     """Health check endpoint."""
     return {
@@ -82,7 +83,6 @@ def reset_session(session_id: str):
     }
 
 
-
 @app.post("/api/ingest")
 async def ingest_document(file: UploadFile = File(...)):
     """Upload a document (.pdf, .md, .txt) and dynamically re-index the RAG vector store."""
@@ -111,4 +111,9 @@ async def ingest_document(file: UploadFile = File(...)):
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to ingest document: {str(e)}")
+
+
+# Mount Static Dashboard UI
+app.mount("/", StaticFiles(directory="static", html=True), name="static")
+
 

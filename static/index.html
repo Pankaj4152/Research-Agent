@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gemini Autonomous Research Agent</title>
+  <link rel="stylesheet" href="/style.css">
+  <!-- Marked.js for rendering markdown in responses -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+  <div id="app-container">
+    <!-- Sidebar -->
+    <aside id="sidebar">
+      <div class="brand">
+        <div class="brand-icon">⚡</div>
+        <div class="brand-title">Research Agent</div>
+      </div>
+
+      <button id="btn-new-chat" class="btn-new-chat">
+        <span>+ New Session</span>
+      </button>
+
+      <div class="section-label">Active Sessions</div>
+      <div id="sessions-list" class="sessions-list">
+        <!-- Session items populated dynamically -->
+      </div>
+
+      <div class="section-label">Knowledge Ingestion</div>
+      <div id="drop-zone" class="drop-zone">
+        <div class="drop-icon">📁</div>
+        <div class="drop-text">Drag & drop document</div>
+        <div class="drop-subtext">Supports .pdf, .md, .txt files</div>
+        <input type="file" id="file-input" accept=".pdf,.md,.txt" style="display: none;">
+      </div>
+    </aside>
+
+    <!-- Main Workspace -->
+    <main id="main-content">
+      <!-- Top Navigation Bar -->
+      <header id="top-bar">
+        <div class="status-badge">
+          <div class="status-dot"></div>
+          <span>System Online</span>
+        </div>
+        <div id="active-session-label" style="font-size: 0.85rem; color: var(--text-muted);">
+          Session: <span id="current-session-id-display">--</span>
+        </div>
+        <div class="model-pill">Gemini 2.5 Flash</div>
+      </header>
+
+      <!-- Chat Feed -->
+      <div id="chat-feed">
+        <div class="empty-state" id="empty-state">
+          <div class="empty-icon">🧠</div>
+          <div class="empty-title">How can I assist your research today?</div>
+          <p style="font-size: 0.9rem; max-width: 500px;">
+            Ask questions, search internal documents via FAISS RAG, or retrieve live real-time API data.
+          </p>
+          <div class="prompt-suggestions">
+            <div class="suggestion-card" onclick="useSuggestion('Summarize the RAG architecture from internal documents')">
+              📖 <strong>Internal Knowledge</strong><br>
+              Summarize RAG architecture from local docs
+            </div>
+            <div class="suggestion-card" onclick="useSuggestion('Get the live current weather in Tokyo and Jodhpur')">
+              🌤 <strong>Live Weather API</strong><br>
+              Get current weather in Tokyo & Jodhpur
+            </div>
+            <div class="suggestion-card" onclick="useSuggestion('Search Wikipedia for Quantum Computing concepts')">
+              🌐 <strong>Wikipedia Search</strong><br>
+              Search Wikipedia for Quantum Computing
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Input Bar Container -->
+      <div id="input-container">
+        <div class="input-box">
+          <textarea id="prompt-input" placeholder="Type your prompt or research query..." rows="1"></textarea>
+          <button id="btn-send" class="btn-send">
+            <span>➔</span>
+          </button>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>
