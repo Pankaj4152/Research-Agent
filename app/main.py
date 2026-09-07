@@ -76,7 +76,7 @@ def ask_agent(prompt: str, session_id: str | None = None) -> tuple[str, str]:
     while True:
         try:
             response = client.models.generate_content(
-                model="gemini-2.5-flash",
+                model="gemini-2.5-flash-lite",
                 contents=contents,
                 config=types.GenerateContentConfig(
                     tools=tools,
