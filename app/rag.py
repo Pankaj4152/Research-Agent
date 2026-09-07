@@ -20,36 +20,49 @@ embedding_model = SentenceTransformer(
 
 
 # -------------------------
-# Load documents
+# Load documents (.txt, .md, .pdf)
 # -------------------------
 
-def load_documents():
+def read_pdf(filepath: str) -> str:
+    """Extract text from a PDF file using pypdf."""
+    try:
+        from pypdf import PdfReader
+        reader = PdfReader(filepath)
+        text_pages = [page.extract_text() or "" for page in reader.pages]
+        return "\n".join(text_pages)
+    except Exception as e:
+        print(f"Error reading PDF file {filepath}: {e}")
+        return ""
 
+
+def load_documents():
+    """Load text content from .txt, .md, and .pdf files in data directory."""
     documents = []
+    if not os.path.exists(DATA_DIR):
+        os.makedirs(DATA_DIR, exist_ok=True)
 
     for filename in os.listdir(DATA_DIR):
+        path = os.path.join(DATA_DIR, filename)
+        if not os.path.isfile(path):
+            continue
 
-        if filename.endswith(".txt"):
+        ext = os.path.splitext(filename)[1].lower()
+        text = ""
 
-            path = os.path.join(
-                DATA_DIR,
-                filename
-            )
-
-            with open(
-                path,
-                "r",
-                encoding="utf-8"
-            ) as file:
-
+        if ext in [".txt", ".md"]:
+            with open(path, "r", encoding="utf-8", errors="ignore") as file:
                 text = file.read()
+        elif ext == ".pdf":
+            text = read_pdf(path)
 
+        if text.strip():
             documents.append({
                 "filename": filename,
                 "text": text
             })
 
     return documents
+
 
 
 # -------------------------
@@ -258,6 +271,30 @@ def search_local_docs(query: str, top_k: int = 3) -> str:
         return "\n\n".join(formatted_outputs)
     except Exception as e:
         return f"Error searching local document store: {str(e)}"
+
+
+def reindex_all():
+    """Ingest all documents from data directory and re-build FAISS vector index."""
+    global _cached_index, _cached_chunks
+    documents = load_documents()
+    chunks = create_chunks(documents)
+    if chunks:
+        embeddings = create_embeddings(chunks)
+        index = create_vector_index(embeddings)
+        save_index(index, chunks)
+        _cached_index = index
+        _cached_chunks = chunks
+    return len(chunks), [doc["filename"] for doc in documents]
+
+
+def ingest_file_and_reindex(filename: str, content_bytes: bytes):
+    """Save raw file bytes into data directory and trigger full vector re-indexing."""
+    os.makedirs(DATA_DIR, exist_ok=True)
+    file_path = os.path.join(DATA_DIR, filename)
+    with open(file_path, "wb") as f:
+        f.write(content_bytes)
+    return reindex_all()
+
 
 
 # -------------------------

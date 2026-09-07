@@ -5,4 +5,7 @@ google-genai
 requests
 httpx
 faiss-cpu
-sentence-transformers
+sentence-transformers
+pypdf
+python-multipart
+

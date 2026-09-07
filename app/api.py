@@ -1,8 +1,9 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from app.main import ask_agent
+from app.rag import ingest_file_and_reindex
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -53,3 +54,34 @@ def research(request: ResearchRequest):
         return ResearchResponse(query=request.prompt, answer=answer)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/ingest")
+async def ingest_document(file: UploadFile = File(...)):
+    """Upload a document (.pdf, .md, .txt) and dynamically re-index the RAG vector store."""
+    allowed_extensions = {".pdf", ".md", ".txt"}
+    filename = file.filename or "uploaded_doc.txt"
+    file_ext = "." + filename.split(".")[-1].lower() if "." in filename else ""
+
+    if file_ext not in allowed_extensions:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unsupported file format '{file_ext}'. Allowed formats: {', '.join(allowed_extensions)}"
+        )
+
+    try:
+        content_bytes = await file.read()
+        if not content_bytes:
+            raise HTTPException(status_code=400, detail="Uploaded file is empty.")
+
+        chunks_count, all_docs = ingest_file_and_reindex(filename, content_bytes)
+        return {
+            "status": "success",
+            "message": f"Successfully ingested '{filename}' into vector storage.",
+            "filename": filename,
+            "total_chunks_indexed": chunks_count,
+            "indexed_documents": all_docs
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to ingest document: {str(e)}")
+
