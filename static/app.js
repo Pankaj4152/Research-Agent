@@ -8,6 +8,7 @@ let activeSessions = JSON.parse(localStorage.getItem("saved_sessions") || "[]");
 document.addEventListener("DOMContentLoaded", () => {
   setupEventListeners();
   renderSessionList();
+  loadIngestedDocuments();
   selectSession(activeSessionId);
 });
 
@@ -167,6 +168,7 @@ async function uploadDocument(file) {
     const data = await res.json();
     if (res.ok) {
       alert(`✅ ${data.message}\nTotal indexed chunks: ${data.total_chunks_indexed}`);
+      loadIngestedDocuments();
     } else {
       alert(`❌ Ingestion failed: ${data.detail}`);
     }
@@ -174,6 +176,37 @@ async function uploadDocument(file) {
     alert(`❌ Upload error: ${err.message}`);
   } finally {
     dropZone.querySelector(".drop-text").textContent = originalText;
+  }
+}
+
+async function loadIngestedDocuments() {
+  const container = document.getElementById("documents-list");
+  if (!container) return;
+  try {
+    const res = await fetch("/api/documents");
+    if (res.ok) {
+      const data = await res.json();
+      container.innerHTML = "";
+      if (data.documents && data.documents.length > 0) {
+        data.documents.forEach(doc => {
+          const item = document.createElement("div");
+          item.className = "session-item";
+          item.style.cursor = "default";
+
+          const ext = doc.split('.').pop().toLowerCase();
+          let icon = "📄";
+          if (ext === "pdf") icon = "📕";
+          if (ext === "md") icon = "📝";
+
+          item.innerHTML = `<span style="font-size: 0.78rem; text-transform: uppercase;">${icon} ${doc}</span>`;
+          container.appendChild(item);
+        });
+      } else {
+        container.innerHTML = `<div style="font-size: 0.72rem; color: var(--muted); padding: 0.5rem; text-transform: uppercase;">NO DOCUMENTS INGESTED</div>`;
+      }
+    }
+  } catch (e) {
+    console.log("Could not load ingested documents.");
   }
 }
 

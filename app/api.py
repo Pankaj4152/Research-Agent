@@ -5,7 +5,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from app.main import ask_agent, clear_session, get_session_history
-from app.rag import ingest_file_and_reindex
+from app.rag import ingest_file_and_reindex, get_ingested_documents
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -81,6 +81,17 @@ def reset_session(session_id: str):
         "status": "success",
         "message": f"Session memory cleared for '{session_id}'."
     }
+
+
+@app.get("/api/documents")
+def list_documents():
+    """List all currently ingested documents in the knowledge base."""
+    docs = get_ingested_documents()
+    return {
+        "count": len(docs),
+        "documents": docs
+    }
+
 
 
 @app.post("/api/ingest")

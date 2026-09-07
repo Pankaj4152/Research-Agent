@@ -296,6 +296,17 @@ def ingest_file_and_reindex(filename: str, content_bytes: bytes):
     return reindex_all()
 
 
+def get_ingested_documents():
+    """Return list of filenames currently stored in the data directory."""
+    if not os.path.exists(DATA_DIR):
+        return []
+    return [
+        f for f in os.listdir(DATA_DIR)
+        if os.path.isfile(os.path.join(DATA_DIR, f))
+    ]
+
+
+
 
 # -------------------------
 # Main
