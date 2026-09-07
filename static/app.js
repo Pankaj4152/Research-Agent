@@ -1,5 +1,5 @@
 /* ==========================================================================
-   RESEARCH AGENT WEB DASHBOARD CLIENT SCRIPT
+   BMW M MOTORSPORT RESEARCH AGENT WEB DASHBOARD CLIENT
    ========================================================================== */
 
 let activeSessionId = localStorage.getItem("active_session_id") || generateUUID();
@@ -100,7 +100,7 @@ async function handleSendPrompt() {
     }
   } catch (err) {
     loadingRow.remove();
-    appendMessage("agent", `⚠️ Network connection error: ${err.message}`);
+    appendMessage("agent", `⚠️ Connection error: ${err.message}`);
   }
 }
 
@@ -112,7 +112,7 @@ function appendMessage(role, text) {
 
   const avatar = document.createElement("div");
   avatar.className = "avatar";
-  avatar.textContent = role === "user" ? "U" : "AI";
+  avatar.textContent = role === "user" ? "USR" : "///M";
 
   const bubble = document.createElement("div");
   bubble.className = "bubble";
@@ -137,11 +137,11 @@ function appendLoadingIndicator() {
 
   const avatar = document.createElement("div");
   avatar.className = "avatar";
-  avatar.textContent = "AI";
+  avatar.textContent = "///M";
 
   const bubble = document.createElement("div");
   bubble.className = "bubble";
-  bubble.innerHTML = `<span style="opacity: 0.7;">🔍 Researching & processing query...</span>`;
+  bubble.innerHTML = `<span style="opacity: 0.7; font-family: var(--font-display); letter-spacing: 1px; text-transform: uppercase;">[EXECUTING TELEMETRY & VECTOR SEARCH...]</span>`;
 
   row.appendChild(avatar);
   row.appendChild(bubble);
@@ -153,7 +153,7 @@ function appendLoadingIndicator() {
 async function uploadDocument(file) {
   const dropZone = document.getElementById("drop-zone");
   const originalText = dropZone.querySelector(".drop-text").textContent;
-  dropZone.querySelector(".drop-text").textContent = `Uploading ${file.name}...`;
+  dropZone.querySelector(".drop-text").textContent = `INGESTING ${file.name.toUpperCase()}...`;
 
   const formData = new FormData();
   formData.append("file", file);
@@ -168,7 +168,7 @@ async function uploadDocument(file) {
     if (res.ok) {
       alert(`✅ ${data.message}\nTotal indexed chunks: ${data.total_chunks_indexed}`);
     } else {
-      alert(`❌ Upload failed: ${data.detail}`);
+      alert(`❌ Ingestion failed: ${data.detail}`);
     }
   } catch (err) {
     alert(`❌ Upload error: ${err.message}`);
@@ -185,28 +185,27 @@ function createNewSession() {
 function selectSession(sessionId) {
   activeSessionId = sessionId;
   localStorage.setItem("active_session_id", sessionId);
-  document.getElementById("current-session-id-display").textContent = sessionId.slice(0, 8);
+  document.getElementById("current-session-id-display").textContent = sessionId.slice(0, 8).toUpperCase();
 
   const feed = document.getElementById("chat-feed");
   feed.innerHTML = `
     <div class="empty-state" id="empty-state">
-      <div class="empty-icon">🧠</div>
-      <div class="empty-title">How can I assist your research today?</div>
-      <p style="font-size: 0.9rem; max-width: 500px;">
-        Ask questions, search internal documents via FAISS RAG, or retrieve live real-time API data.
+      <div class="empty-headline">AUTONOMOUS RESEARCH CORE</div>
+      <p class="empty-subtext">
+        High-performance research platform with real-time external API tools and FAISS vector intelligence.
       </p>
       <div class="prompt-suggestions">
         <div class="suggestion-card" onclick="useSuggestion('Summarize the RAG architecture from internal documents')">
-          📖 <strong>Internal Knowledge</strong><br>
-          Summarize RAG architecture from local docs
+          <div class="suggestion-tag">VECTOR DATABASE</div>
+          <div class="suggestion-title">Summarize RAG architecture from internal documents</div>
         </div>
         <div class="suggestion-card" onclick="useSuggestion('Get the live current weather in Tokyo and Jodhpur')">
-          🌤 <strong>Live Weather API</strong><br>
-          Get current weather in Tokyo & Jodhpur
+          <div class="suggestion-tag">LIVE METRICS API</div>
+          <div class="suggestion-title">Get current weather telemetry in Tokyo & Jodhpur</div>
         </div>
         <div class="suggestion-card" onclick="useSuggestion('Search Wikipedia for Quantum Computing concepts')">
-          🌐 <strong>Wikipedia Search</strong><br>
-          Search Wikipedia for Quantum Computing
+          <div class="suggestion-tag">GLOBAL KNOWLEDGE</div>
+          <div class="suggestion-title">Search Wikipedia for Quantum Computing concepts</div>
         </div>
       </div>
     </div>
@@ -239,7 +238,7 @@ function saveSessionToList(sessionId, previewTitle) {
   if (!activeSessions.some(s => s.id === sessionId)) {
     activeSessions.unshift({
       id: sessionId,
-      title: previewTitle.length > 25 ? previewTitle.slice(0, 25) + "..." : previewTitle
+      title: previewTitle.length > 22 ? previewTitle.slice(0, 22).toUpperCase() + "..." : previewTitle.toUpperCase()
     });
     localStorage.setItem("saved_sessions", JSON.stringify(activeSessions));
     renderSessionList();
@@ -260,7 +259,7 @@ function renderSessionList() {
 
     const delBtn = document.createElement("button");
     delBtn.className = "btn-del-session";
-    delBtn.innerHTML = "✖";
+    delBtn.innerHTML = "✕";
     delBtn.onclick = (e) => {
       e.stopPropagation();
       deleteSession(s.id);

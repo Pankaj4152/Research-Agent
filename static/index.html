@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gemini Autonomous Research Agent</title>
+  <title>ResearcheX - Autonomous AI Research Platform</title>
   <link rel="stylesheet" href="/style.css">
-  <!-- Marked.js for rendering markdown in responses -->
+  <!-- Marked.js for markdown rendering -->
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body>
@@ -13,62 +13,65 @@
     <!-- Sidebar -->
     <aside id="sidebar">
       <div class="brand">
-        <div class="brand-icon">⚡</div>
-        <div class="brand-title">Research Agent</div>
+        <div class="brand-badge"></div>
+        <div class="brand-title">RESEARCHEX</div>
       </div>
 
-      <button id="btn-new-chat" class="btn-new-chat">
-        <span>+ New Session</span>
+      <div class="m-stripe-divider"></div>
+
+      <button id="btn-new-chat" class="btn-m-primary">
+        <span>+ INITIALIZE SESSION</span>
       </button>
 
-      <div class="section-label">Active Sessions</div>
+      <div class="section-label">ACTIVE SESSIONS</div>
       <div id="sessions-list" class="sessions-list">
-        <!-- Session items populated dynamically -->
+        <!-- Sessions populated dynamically -->
       </div>
 
-      <div class="section-label">Knowledge Ingestion</div>
+      <div class="section-label">KNOWLEDGE INGESTION</div>
       <div id="drop-zone" class="drop-zone">
-        <div class="drop-icon">📁</div>
-        <div class="drop-text">Drag & drop document</div>
-        <div class="drop-subtext">Supports .pdf, .md, .txt files</div>
+        <div class="drop-icon">⚡</div>
+        <div class="drop-text">UPLOAD DOCUMENT</div>
+        <div class="drop-subtext">SUPPORTS .PDF, .MD, .TXT FORMATS</div>
         <input type="file" id="file-input" accept=".pdf,.md,.txt" style="display: none;">
       </div>
     </aside>
 
     <!-- Main Workspace -->
     <main id="main-content">
-      <!-- Top Navigation Bar -->
+      <!-- Top Bar Header -->
       <header id="top-bar">
         <div class="status-badge">
           <div class="status-dot"></div>
-          <span>System Online</span>
+          <span>ENGINEERING SYSTEM ONLINE</span>
         </div>
-        <div id="active-session-label" style="font-size: 0.85rem; color: var(--text-muted);">
-          Session: <span id="current-session-id-display">--</span>
+        <div id="active-session-label" style="font-size: 0.8rem; color: var(--muted); font-family: var(--font-display); letter-spacing: 1px; text-transform: uppercase;">
+          SESSION ID: <span id="current-session-id-display" style="color: var(--primary);">--</span>
         </div>
-        <div class="model-pill">Gemini 3.1 Flash-Lite</div>
+        <div class="model-pill">GEMINI 3.1 FLASH-LITE</div>
       </header>
+
+      <div class="m-stripe-divider"></div>
 
       <!-- Chat Feed -->
       <div id="chat-feed">
         <div class="empty-state" id="empty-state">
-          <div class="empty-icon">🧠</div>
-          <div class="empty-title">How can I assist your research today?</div>
-          <p style="font-size: 0.9rem; max-width: 500px;">
-            Ask questions, search internal documents via FAISS RAG, or retrieve live real-time API data.
+          <div class="empty-headline">RESEARCHEX CORE</div>
+          <p class="empty-subtext">
+            High-performance research platform with real-time external API tools and FAISS vector intelligence.
           </p>
           <div class="prompt-suggestions">
             <div class="suggestion-card" onclick="useSuggestion('Summarize the RAG architecture from internal documents')">
-              📖 <strong>Internal Knowledge</strong><br>
-              Summarize RAG architecture from local docs
+              <div class="suggestion-tag">VECTOR DATABASE</div>
+              <div class="suggestion-title">Summarize RAG architecture from internal documents</div>
             </div>
             <div class="suggestion-card" onclick="useSuggestion('Get the live current weather in Tokyo and Jodhpur')">
-              🌤 <strong>Live Weather API</strong><br>
-              Get current weather in Tokyo & Jodhpur
+              <div class="suggestion-tag">LIVE METRICS API</div>
+              <div class="suggestion-title">Get current weather telemetry in Tokyo & Jodhpur</div>
             </div>
             <div class="suggestion-card" onclick="useSuggestion('Search Wikipedia for Quantum Computing concepts')">
-              🌐 <strong>Wikipedia Search</strong><br>
-              Search Wikipedia for Quantum Computing
+              <div class="suggestion-tag">GLOBAL KNOWLEDGE</div>
+              <div class="suggestion-title">Search Wikipedia for Quantum Computing concepts</div>
             </div>
           </div>
         </div>
@@ -77,7 +80,7 @@
       <!-- Input Bar Container -->
       <div id="input-container">
         <div class="input-box">
-          <textarea id="prompt-input" placeholder="Type your prompt or research query..." rows="1"></textarea>
+          <textarea id="prompt-input" placeholder="ENTER RESEARCH QUERY OR INSTRUCTION..." rows="1"></textarea>
           <button id="btn-send" class="btn-send">
             <span>➔</span>
           </button>
