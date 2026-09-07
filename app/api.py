@@ -1,8 +1,9 @@
+import uuid
 from fastapi import FastAPI, HTTPException, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-from app.main import ask_agent
+from app.main import ask_agent, clear_session, get_session_history
 from app.rag import ingest_file_and_reindex
 
 # Initialize FastAPI app
@@ -25,12 +26,14 @@ app.add_middleware(
 # Request schema
 class ResearchRequest(BaseModel):
     prompt: str
+    session_id: str | None = None
 
 
 # Response schema
 class ResearchResponse(BaseModel):
     query: str
     answer: str
+    session_id: str
 
 
 @app.get("/")
@@ -45,15 +48,39 @@ def health_check():
 
 @app.post("/api/research", response_model=ResearchResponse)
 def research(request: ResearchRequest):
-    """Execute research prompt via AI Agent and return response."""
+    """Execute research prompt via AI Agent and return response with multi-turn session state."""
     if not request.prompt.strip():
         raise HTTPException(status_code=400, detail="Prompt cannot be empty.")
 
     try:
-        answer = ask_agent(request.prompt)
-        return ResearchResponse(query=request.prompt, answer=answer)
+        answer, session_id = ask_agent(request.prompt, session_id=request.session_id)
+        return ResearchResponse(query=request.prompt, answer=answer, session_id=session_id)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/session/{session_id}")
+def fetch_session_history(session_id: str):
+    """Get chat history for a session."""
+    history = get_session_history(session_id)
+    return {
+        "session_id": session_id,
+        "message_count": len(history),
+        "history": history
+    }
+
+
+@app.delete("/api/session/{session_id}")
+def reset_session(session_id: str):
+    """Clear memory for a given session."""
+    cleared = clear_session(session_id)
+    if not cleared:
+        raise HTTPException(status_code=404, detail=f"Session '{session_id}' not found.")
+    return {
+        "status": "success",
+        "message": f"Session memory cleared for '{session_id}'."
+    }
+
 
 
 @app.post("/api/ingest")
