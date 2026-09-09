@@ -37,12 +37,17 @@ class ResearchResponse(BaseModel):
     session_id: str
 
 
+@app.get("/health")
 @app.get("/api/health")
 def health_check():
-    """Health check endpoint."""
+    """Health check endpoint for cloud monitoring (Render, AWS, Docker) and UI telemetry."""
+    docs = get_ingested_documents()
     return {
         "status": "online",
-        "service": "Research Agent API",
+        "service": "ResearcheX Core API",
+        "version": "1.0.0",
+        "active_agents": 3,
+        "ingested_documents_count": len(docs),
         "docs_url": "/docs"
     }
 

@@ -7,11 +7,31 @@ let activeSessions = JSON.parse(localStorage.getItem("saved_sessions") || "[]");
 
 document.addEventListener("DOMContentLoaded", () => {
   setupEventListeners();
+  checkSystemHealth();
   renderSessionList();
   loadToolsList();
   loadIngestedDocuments();
   selectSession(activeSessionId);
 });
+
+async function checkSystemHealth() {
+  const badgeText = document.querySelector(".status-badge span");
+  const statusDot = document.querySelector(".status-dot");
+  try {
+    const res = await fetch("/api/health");
+    if (res.ok) {
+      const data = await res.json();
+      if (badgeText) badgeText.textContent = `SYSTEM ONLINE (v${data.version || '1.0'})`;
+      if (statusDot) statusDot.style.background = "#00FF66";
+    } else {
+      if (badgeText) badgeText.textContent = "SYSTEM DEGRADED";
+      if (statusDot) statusDot.style.background = "#FFCC00";
+    }
+  } catch (err) {
+    if (badgeText) badgeText.textContent = "SYSTEM OFFLINE";
+    if (statusDot) statusDot.style.background = "#FF2D55";
+  }
+}
 
 function generateUUID() {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
