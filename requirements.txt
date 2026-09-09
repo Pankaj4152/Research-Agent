@@ -5,7 +5,6 @@ google-genai
 requests
 httpx
 faiss-cpu
-sentence-transformers
 pypdf
 python-multipart
 

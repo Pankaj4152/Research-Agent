@@ -3,20 +3,40 @@ import json
 
 import faiss
 import numpy as np
-from sentence_transformers import SentenceTransformer
+from dotenv import load_dotenv
+from google import genai
 
+load_dotenv(override=True)
 
 DATA_DIR = "data"
 STORAGE_DIR = "storage"
 
 
 # -------------------------
-# Embedding model
+# Gemini Embedding Client Helper
 # -------------------------
 
-embedding_model = SentenceTransformer(
-    "all-MiniLM-L6-v2"
-)
+_genai_client = None
+
+def get_genai_client():
+    global _genai_client
+    if _genai_client is None:
+        _genai_client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+    return _genai_client
+
+
+def get_vector_embedding(text: str) -> np.ndarray:
+    """Generate a single normalized vector embedding using Gemini API."""
+    client = get_genai_client()
+    res = client.models.embed_content(
+        model="gemini-embedding-001",
+        contents=text
+    )
+    vec = np.array(res.embeddings[0].values, dtype="float32")
+    norm = np.linalg.norm(vec)
+    if norm > 0:
+        vec = vec / norm
+    return vec
 
 
 # -------------------------
@@ -108,24 +128,39 @@ def create_chunks(documents):
 
 
 # -------------------------
-# Create embeddings
+# Create embeddings via Gemini API
 # -------------------------
 
 def create_embeddings(chunks):
+    import time
+    client = get_genai_client()
+    texts = [chunk["text"] for chunk in chunks]
+    all_embeddings = []
 
-    texts = [
-        chunk["text"]
-        for chunk in chunks
-    ]
+    batch_size = 20
+    for i in range(0, len(texts), batch_size):
+        batch_texts = texts[i:i + batch_size]
+        for attempt in range(5):
+            try:
+                res = client.models.embed_content(
+                    model="gemini-embedding-001",
+                    contents=batch_texts
+                )
+                for emb in res.embeddings:
+                    vec = np.array(emb.values, dtype="float32")
+                    norm = np.linalg.norm(vec)
+                    if norm > 0:
+                        vec = vec / norm
+                    all_embeddings.append(vec)
+                break
+            except Exception as e:
+                if attempt < 4 and ("429" in str(e) or "RESOURCE_EXHAUSTED" in str(e)):
+                    time.sleep(4 * (attempt + 1))
+                else:
+                    raise e
+        time.sleep(0.3)
 
-    embeddings = embedding_model.encode(
-        texts,
-        normalize_embeddings=True
-    )
-
-    return np.array(
-        embeddings
-    ).astype("float32")
+    return np.array(all_embeddings, dtype="float32")
 
 
 # -------------------------
@@ -211,7 +246,7 @@ def load_index():
 
 
 # -------------------------
-# Semantic search (Cosine Similarity)
+# Semantic search (Cosine Similarity via Gemini API)
 # -------------------------
 
 def search_documents(
@@ -222,17 +257,10 @@ def search_documents(
     similarity_threshold=0.45
 ):
 
-    query_embedding = embedding_model.encode(
-        [query],
-        normalize_embeddings=True
-    )
-
-    query_embedding = np.array(
-        query_embedding
-    ).astype("float32")
+    query_vec = get_vector_embedding(query).reshape(1, -1)
 
     scores, indices = index.search(
-        query_embedding,
+        query_vec,
         top_k
     )
 
