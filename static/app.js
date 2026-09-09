@@ -202,8 +202,9 @@ async function uploadDocuments(filesList) {
   if (files.length === 0) return;
 
   const dropZone = document.getElementById("drop-zone");
-  const originalText = dropZone.querySelector(".drop-text").textContent;
-  dropZone.querySelector(".drop-text").textContent = `INGESTING ${files.length} FILE(S)...`;
+  const dropTextEl = dropZone ? (dropZone.querySelector(".drop-text") || dropZone.querySelector("span")) : null;
+  const originalText = dropTextEl ? dropTextEl.textContent : "⚡ DRAG & DROP FILES TO INGEST";
+  if (dropTextEl) dropTextEl.textContent = `INGESTING ${files.length} FILE(S)...`;
 
   const formData = new FormData();
   files.forEach(file => {
@@ -226,7 +227,7 @@ async function uploadDocuments(filesList) {
   } catch (err) {
     alert(`❌ Upload error: ${err.message}`);
   } finally {
-    dropZone.querySelector(".drop-text").textContent = originalText;
+    if (dropTextEl) dropTextEl.textContent = originalText;
     const fileInput = document.getElementById("file-input");
     if (fileInput) fileInput.value = "";
   }
