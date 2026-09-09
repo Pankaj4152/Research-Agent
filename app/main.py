@@ -10,7 +10,7 @@ from google.genai import types
 # Gemini setup
 # -------------------------
 
-load_dotenv()
+load_dotenv(override=True)
 
 client = genai.Client(
     api_key=os.getenv("GEMINI_API_KEY")
