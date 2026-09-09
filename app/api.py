@@ -95,33 +95,47 @@ def list_documents():
 
 
 @app.post("/api/ingest")
-async def ingest_document(file: UploadFile = File(...)):
-    """Upload a document (.pdf, .md, .txt) and dynamically re-index the RAG vector store."""
+async def ingest_documents(files: list[UploadFile] = File(...)):
+    """Upload multiple documents (.pdf, .md, .txt) and dynamically re-index the RAG vector store in batch."""
+    import os
+    from app.rag import reindex_all
+
     allowed_extensions = {".pdf", ".md", ".txt"}
-    filename = file.filename or "uploaded_doc.txt"
-    file_ext = "." + filename.split(".")[-1].lower() if "." in filename else ""
+    ingested_filenames = []
 
-    if file_ext not in allowed_extensions:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Unsupported file format '{file_ext}'. Allowed formats: {', '.join(allowed_extensions)}"
-        )
+    for file in files:
+        filename = file.filename or "uploaded_doc.txt"
+        file_ext = "." + filename.split(".")[-1].lower() if "." in filename else ""
 
-    try:
+        if file_ext not in allowed_extensions:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Unsupported file format '{file_ext}' for file '{filename}'. Allowed formats: {', '.join(allowed_extensions)}"
+            )
+
         content_bytes = await file.read()
         if not content_bytes:
-            raise HTTPException(status_code=400, detail="Uploaded file is empty.")
+            continue
 
-        chunks_count, all_docs = ingest_file_and_reindex(filename, content_bytes)
-        return {
-            "status": "success",
-            "message": f"Successfully ingested '{filename}' into vector storage.",
-            "filename": filename,
-            "total_chunks_indexed": chunks_count,
-            "indexed_documents": all_docs
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to ingest document: {str(e)}")
+        os.makedirs("data", exist_ok=True)
+        file_path = os.path.join("data", filename)
+        with open(file_path, "wb") as f:
+            f.write(content_bytes)
+        ingested_filenames.append(filename)
+
+    if not ingested_filenames:
+        raise HTTPException(status_code=400, detail="No valid, non-empty files were provided for ingestion.")
+
+    chunks_count, all_docs = reindex_all()
+
+    return {
+        "status": "success",
+        "message": f"Successfully ingested {len(ingested_filenames)} file(s) into vector storage.",
+        "ingested_files": ingested_filenames,
+        "total_chunks_indexed": chunks_count,
+        "indexed_documents": all_docs
+    }
+
 
 
 # Mount Static Dashboard UI

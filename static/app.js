@@ -47,12 +47,12 @@ function setupEventListeners() {
     e.preventDefault();
     dropZone.classList.remove("dragover");
     if (e.dataTransfer.files.length > 0) {
-      uploadDocument(e.dataTransfer.files[0]);
+      uploadDocuments(e.dataTransfer.files);
     }
   });
   fileInput.addEventListener("change", (e) => {
     if (e.target.files.length > 0) {
-      uploadDocument(e.target.files[0]);
+      uploadDocuments(e.target.files);
     }
   });
 }
@@ -151,13 +151,18 @@ function appendLoadingIndicator() {
   return row;
 }
 
-async function uploadDocument(file) {
+async function uploadDocuments(filesList) {
+  const files = Array.from(filesList);
+  if (files.length === 0) return;
+
   const dropZone = document.getElementById("drop-zone");
   const originalText = dropZone.querySelector(".drop-text").textContent;
-  dropZone.querySelector(".drop-text").textContent = `INGESTING ${file.name.toUpperCase()}...`;
+  dropZone.querySelector(".drop-text").textContent = `INGESTING ${files.length} FILE(S)...`;
 
   const formData = new FormData();
-  formData.append("file", file);
+  files.forEach(file => {
+    formData.append("files", file);
+  });
 
   try {
     const res = await fetch("/api/ingest", {
@@ -176,6 +181,8 @@ async function uploadDocument(file) {
     alert(`❌ Upload error: ${err.message}`);
   } finally {
     dropZone.querySelector(".drop-text").textContent = originalText;
+    const fileInput = document.getElementById("file-input");
+    if (fileInput) fileInput.value = "";
   }
 }
 
