@@ -1,10 +1,11 @@
 import uuid
 from fastapi import FastAPI, HTTPException, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-from app.main import ask_agent, clear_session, get_session_history
+from app.main import ask_agent, ask_agent_stream, clear_session, get_session_history
 from app.rag import ingest_file_and_reindex, get_ingested_documents
 
 # Initialize FastAPI app
@@ -97,6 +98,18 @@ def research(request: ResearchRequest):
         return ResearchResponse(query=request.prompt, answer=answer, session_id=session_id, tool_traces=traces)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/research/stream")
+def research_stream(request: ResearchRequest):
+    """Execute research prompt with live Server-Sent Events stream of tool executions and response generation."""
+    if not request.prompt.strip():
+        raise HTTPException(status_code=400, detail="Prompt cannot be empty.")
+
+    return StreamingResponse(
+        ask_agent_stream(request.prompt, session_id=request.session_id),
+        media_type="application/x-ndjson"
+    )
 
 
 @app.get("/api/session/{session_id}")

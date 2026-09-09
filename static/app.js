@@ -122,11 +122,46 @@ async function handleSendPrompt() {
   // Append User Message
   appendMessage("user", prompt);
 
-  // Append Loading State
-  const loadingRow = appendLoadingIndicator();
+  // Build Live Agent Bubble
+  const feed = document.getElementById("chat-feed");
+  const row = document.createElement("div");
+  row.className = "msg-row agent";
+
+  const avatar = document.createElement("div");
+  avatar.className = "avatar";
+  avatar.textContent = "///M";
+
+  const bubble = document.createElement("div");
+  bubble.className = "bubble";
+  bubble.innerHTML = `
+    <div class="trace-accordion open" id="live-trace-accordion">
+      <button class="trace-toggle-btn" onclick="this.parentElement.classList.toggle('open')">
+        <span class="live-trace-header">⚡ EXECUTING THOUGHT PROCESS...</span>
+        <span class="trace-chevron">▼</span>
+      </button>
+      <div class="trace-body" class="live-trace-body">
+        <div class="live-status-pill" style="font-size: 0.72rem; color: var(--m-blue-light); padding: 4px 8px; font-family: var(--font-code);">
+          <span class="pulse-dot">●</span> Initializing Autonomous Agent...
+        </div>
+      </div>
+    </div>
+    <div class="live-answer-content" style="margin-top: 10px;"></div>
+  `;
+
+  row.appendChild(avatar);
+  row.appendChild(bubble);
+  feed.appendChild(row);
+  feed.scrollTop = feed.scrollHeight;
+
+  const traceHeader = bubble.querySelector(".live-trace-header");
+  const traceBody = bubble.querySelector(".trace-body");
+  const statusPill = bubble.querySelector(".live-status-pill");
+  const answerContent = bubble.querySelector(".live-answer-content");
+
+  let toolTraces = [];
 
   try {
-    const response = await fetch("/api/research", {
+    const response = await fetch("/api/research/stream", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -135,19 +170,69 @@ async function handleSendPrompt() {
       })
     });
 
-    const data = await response.json();
-    loadingRow.remove();
+    if (!response.ok) {
+      const errText = await response.text();
+      statusPill.style.display = "none";
+      answerContent.innerHTML = `⚠️ Error: ${errText}`;
+      return;
+    }
 
-    if (response.ok) {
-      activeSessionId = data.session_id;
-      saveSessionToList(activeSessionId, prompt);
-      appendMessage("agent", data.answer, data.tool_traces);
-    } else {
-      appendMessage("agent", `⚠️ Error: ${data.detail || "Server error"}`);
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder("utf-8");
+    let buffer = "";
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n");
+      buffer = lines.pop(); // Retain unfinished tail fragment
+
+      for (const line of lines) {
+        if (!line.trim()) continue;
+        try {
+          const event = JSON.parse(line);
+          if (event.type === "tool_start") {
+            statusPill.style.display = "block";
+            statusPill.innerHTML = `<span class="pulse-dot">●</span> Calling tool: <strong>${event.name}</strong> (${JSON.stringify(event.args)})`;
+          } else if (event.type === "tool_result") {
+            toolTraces.push(event.trace);
+            const traceCard = document.createElement("div");
+            traceCard.className = "trace-detail-card";
+            traceCard.innerHTML = `
+              <div style="display: flex; justify-content: space-between; font-weight: 700; color: #FFFFFF; font-size: 0.72rem;">
+                <span>⚡ ${event.trace.name}</span>
+                <span style="color: var(--m-blue-light);">${event.trace.latency_ms}ms</span>
+              </div>
+              <div style="font-size: 0.66rem; color: var(--muted); margin-top: 3px;">
+                <strong>Args:</strong> ${JSON.stringify(event.trace.args)}
+              </div>
+              <div style="font-size: 0.66rem; color: #BBBBBB; margin-top: 4px; font-family: var(--font-code); background: #000; padding: 6px; border: 1px solid var(--hairline); word-break: break-all;">
+                ${event.trace.result_preview}
+              </div>
+            `;
+            traceBody.appendChild(traceCard);
+            traceHeader.textContent = `⚡ AGENT EXECUTION TRACE (${toolTraces.length} TOOL${toolTraces.length > 1 ? 'S' : ''})`;
+            feed.scrollTop = feed.scrollHeight;
+          } else if (event.type === "final") {
+            activeSessionId = event.session_id;
+            saveSessionToList(activeSessionId, prompt);
+            statusPill.style.display = "none";
+            answerContent.innerHTML = marked.parse(event.answer);
+            feed.scrollTop = feed.scrollHeight;
+          } else if (event.type === "error") {
+            statusPill.style.display = "none";
+            answerContent.innerHTML = `⚠️ Error: ${event.message}`;
+          }
+        } catch (e) {
+          console.error("Error parsing stream line:", e, line);
+        }
+      }
     }
   } catch (err) {
-    loadingRow.remove();
-    appendMessage("agent", `⚠️ Connection error: ${err.message}`);
+    statusPill.style.display = "none";
+    answerContent.innerHTML = `⚠️ Connection error: ${err.message}`;
   }
 }
 

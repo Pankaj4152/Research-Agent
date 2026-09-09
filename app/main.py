@@ -1,5 +1,6 @@
 import os
 import uuid
+import json
 
 from dotenv import load_dotenv
 from google import genai
@@ -148,6 +149,105 @@ def ask_agent(prompt: str, session_id: str | None = None) -> tuple[str, str, lis
             )
 
         # Send ALL custom tool results back to Gemini
+        contents.append(
+            types.Content(
+                role="tool",
+                parts=tool_parts
+            )
+        )
+
+
+def ask_agent_stream(prompt: str, session_id: str | None = None):
+    """Yield live SSE JSON events as tools execute and tokens are generated."""
+    import time
+    if not session_id:
+        session_id = str(uuid.uuid4())
+
+    contents = sessions.get(session_id, [])
+    tool_traces = []
+
+    contents.append(
+        types.Content(
+            role="user",
+            parts=[types.Part.from_text(text=prompt)]
+        )
+    )
+
+    while True:
+        try:
+            response = client.models.generate_content(
+                model="gemini-3.1-flash-lite",
+                contents=contents,
+                config=types.GenerateContentConfig(
+                    tools=tools,
+                    automatic_function_calling=(
+                        types.AutomaticFunctionCallingConfig(disable=True)
+                    )
+                )
+            )
+        except errors.ClientError as error:
+            yield json.dumps({"type": "error", "message": str(error)}) + "\n"
+            return
+
+        if not response.candidates:
+            yield json.dumps({"type": "error", "message": "Empty response from Gemini."}) + "\n"
+            return
+
+        model_content = response.candidates[0].content
+        contents.append(model_content)
+
+        function_calls = [
+            part.function_call
+            for part in model_content.parts
+            if part.function_call
+        ]
+
+        if not function_calls:
+            sessions[session_id] = contents
+            final_text = response.text or ""
+            yield json.dumps({
+                "type": "final",
+                "answer": final_text,
+                "session_id": session_id,
+                "tool_traces": tool_traces
+            }) + "\n"
+            return
+
+        tool_parts = []
+        for function_call in function_calls:
+            tool_name = function_call.name
+            args_dict = dict(function_call.args) if function_call.args else {}
+
+            yield json.dumps({
+                "type": "tool_start",
+                "name": tool_name,
+                "args": args_dict
+            }) + "\n"
+
+            start_time = time.time()
+            result = execute_tool(function_call)
+            latency_ms = int((time.time() - start_time) * 1000)
+
+            trace_data = {
+                "name": tool_name,
+                "args": args_dict,
+                "result_preview": str(result)[:300] + ("..." if len(str(result)) > 300 else ""),
+                "latency_ms": latency_ms
+            }
+            tool_traces.append(trace_data)
+
+            yield json.dumps({
+                "type": "tool_result",
+                "trace": trace_data
+            }) + "\n"
+
+            tool_parts.append(
+                types.Part.from_function_response(
+                    name=function_call.name,
+                    response={"result": result}
+                )
+            )
+
         contents.append(
             types.Content(
                 role="tool",
