@@ -37,6 +37,8 @@ class ResearchResponse(BaseModel):
     session_id: str
 
 
+@app.get("/healthz")
+@app.get("/healtz")
 @app.get("/health")
 @app.get("/api/health")
 def health_check():
