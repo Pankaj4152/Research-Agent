@@ -129,6 +129,21 @@ def list_documents():
     }
 
 
+@app.delete("/api/documents/{filename}")
+def delete_document(filename: str):
+    """Delete an ingested source document from knowledge base and re-index vector store."""
+    from app.rag import delete_document_and_reindex
+    success, chunks_count, docs = delete_document_and_reindex(filename)
+    if not success:
+        raise HTTPException(status_code=404, detail=f"Document '{filename}' not found.")
+    return {
+        "status": "success",
+        "message": f"Successfully deleted document '{filename}'.",
+        "total_chunks_indexed": chunks_count,
+        "remaining_documents": docs
+    }
+
+
 
 @app.post("/api/ingest")
 async def ingest_documents(files: list[UploadFile] = File(...)):

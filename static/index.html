@@ -29,18 +29,19 @@
       </div>
 
       <div class="section-label-row">
-        <span class="section-label">DOCUMENTS INGESTED</span>
-        <button id="btn-upload-plus" class="btn-icon-plus" title="Upload Documents (PDF, MD, TXT)">+</button>
+        <span class="section-label">KNOWLEDGE SOURCES <span id="sources-count" style="color: var(--m-blue-light); font-weight: 800;">(0)</span></span>
+        <button id="btn-upload-plus" class="btn-add-source" title="Add Documents (.pdf, .md, .txt)">
+          <span>+ ADD SOURCE</span>
+        </button>
       </div>
-      <div id="documents-list" class="sessions-list" style="min-height: 120px; max-height: 240px;">
-        <!-- Ingested documents list populated dynamically -->
+      <div id="documents-list" class="sources-card-grid">
+        <!-- NotebookLM-style Source Cards populated dynamically -->
       </div>
 
-      <div id="drop-zone" class="drop-zone">
-        <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
-          <span style="color: var(--m-blue-light); font-weight: 700;">⚡ DRAG & DROP OR CLICK TO UPLOAD</span>
+      <div id="drop-zone" class="drop-zone-mini">
+        <div style="display: flex; align-items: center; justify-content: center; gap: 6px;">
+          <span style="color: var(--muted); font-size: 0.72rem; text-transform: uppercase;">⚡ DRAG & DROP FILES TO INGEST</span>
         </div>
-        <div class="drop-subtext">SUPPORTS .PDF, .MD, .TXT FORMATS</div>
         <input type="file" id="file-input" accept=".pdf,.md,.txt" multiple style="display: none;">
       </div>
     </aside>

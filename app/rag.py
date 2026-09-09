@@ -334,6 +334,16 @@ def ingest_file_and_reindex(filename: str, content_bytes: bytes):
     return reindex_all()
 
 
+def delete_document_and_reindex(filename: str):
+    """Delete document file from data directory and re-build vector index."""
+    file_path = os.path.join(DATA_DIR, filename)
+    if os.path.exists(file_path):
+        os.remove(file_path)
+        chunks_count, docs = reindex_all()
+        return True, chunks_count, docs
+    return False, 0, get_ingested_documents()
+
+
 def get_ingested_documents():
     """Return list of filenames currently stored in the data directory."""
     if not os.path.exists(DATA_DIR):

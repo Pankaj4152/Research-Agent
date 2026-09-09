@@ -267,32 +267,55 @@ async function loadToolsList() {
 
 async function loadIngestedDocuments() {
   const container = document.getElementById("documents-list");
+  const sourcesCountEl = document.getElementById("sources-count");
   if (!container) return;
   try {
     const res = await fetch("/api/documents");
     if (res.ok) {
       const data = await res.json();
       container.innerHTML = "";
+      if (sourcesCountEl) sourcesCountEl.textContent = `(${data.documents ? data.documents.length : 0})`;
       if (data.documents && data.documents.length > 0) {
         data.documents.forEach(doc => {
           const item = document.createElement("div");
-          item.className = "session-item";
-          item.style.cursor = "default";
+          item.className = "source-card";
 
           const ext = doc.split('.').pop().toLowerCase();
-          let icon = "📄";
-          if (ext === "pdf") icon = "📕";
-          if (ext === "md") icon = "📝";
+          let extBadge = "TXT";
+          let badgeBg = "rgba(255,255,255,0.1)";
+          let badgeBorder = "#7E7E7E";
+          if (ext === "pdf") { extBadge = "PDF"; badgeBg = "rgba(226, 39, 24, 0.2)"; badgeBorder = "#E22718"; }
+          if (ext === "md") { extBadge = "MD"; badgeBg = "rgba(0, 102, 177, 0.2)"; badgeBorder = "#0066B1"; }
 
-          item.innerHTML = `<span style="font-size: 0.78rem; text-transform: uppercase;">${icon} ${doc}</span>`;
+          item.innerHTML = `
+            <div class="source-card-main">
+              <span class="source-badge" style="background: ${badgeBg}; border-color: ${badgeBorder}; color: #FFFFFF;">${extBadge}</span>
+              <span class="source-title" title="${doc}">${doc}</span>
+            </div>
+            <button class="btn-delete-source" title="Remove source" onclick="deleteDocument('${doc}')">✕</button>
+          `;
           container.appendChild(item);
         });
       } else {
-        container.innerHTML = `<div style="font-size: 0.72rem; color: var(--muted); padding: 0.5rem; text-transform: uppercase;">NO DOCUMENTS INGESTED</div>`;
+        container.innerHTML = `<div class="empty-sources-notice">NO KNOWLEDGE SOURCES. CLICK '+ ADD SOURCE' TO INGEST.</div>`;
       }
     }
   } catch (e) {
     console.log("Could not load ingested documents.");
+  }
+}
+
+async function deleteDocument(filename) {
+  if (!confirm(`Remove '${filename}' from knowledge sources?`)) return;
+  try {
+    const res = await fetch(`/api/documents/${encodeURIComponent(filename)}`, { method: "DELETE" });
+    if (res.ok) {
+      loadIngestedDocuments();
+    } else {
+      alert(`Could not delete document '${filename}'.`);
+    }
+  } catch (err) {
+    alert(`Delete error: ${err.message}`);
   }
 }
 
