@@ -217,7 +217,8 @@ def search_documents(
     query,
     index,
     all_chunks,
-    top_k=3
+    top_k=3,
+    distance_threshold=1.30
 ):
 
     query_embedding = embedding_model.encode(
@@ -239,10 +240,17 @@ def search_documents(
         distances[0],
         indices[0]
     ):
+        if index_position < 0 or index_position >= len(all_chunks):
+            continue
+
+        dist_val = float(distance)
+        if distance_threshold is not None and dist_val > distance_threshold:
+            continue
+
         chunk = all_chunks[index_position]
         results.append({
             "chunk": chunk,
-            "distance": float(distance)
+            "distance": dist_val
         })
 
     return results
@@ -251,22 +259,22 @@ def search_documents(
 _cached_index = None
 _cached_chunks = None
 
-def search_local_docs(query: str, top_k: int = 3) -> str:
-    """Search internal/local knowledge base documents for relevant context."""
+def search_local_docs(query: str, top_k: int = 3, distance_threshold: float = 1.30) -> str:
+    """Search internal/local knowledge base documents for relevant context within a similarity threshold."""
     global _cached_index, _cached_chunks
     try:
         if _cached_index is None or _cached_chunks is None:
             _cached_index, _cached_chunks = load_index()
 
-        results = search_documents(query, _cached_index, _cached_chunks, top_k=top_k)
+        results = search_documents(query, _cached_index, _cached_chunks, top_k=top_k, distance_threshold=distance_threshold)
         if not results:
-            return f"No local documents found matching query: '{query}'."
+            return f"No local documents found matching query: '{query}' within relevance threshold ({distance_threshold})."
 
         formatted_outputs = []
         for i, res in enumerate(results, 1):
             chunk = res["chunk"]
             formatted_outputs.append(
-                f"[Source Document: {chunk['filename']} | Chunk {chunk['chunk_id']}]\n{chunk['text']}"
+                f"[Source Document: {chunk['filename']} | Chunk {chunk['chunk_id']} | Distance: {res['distance']:.3f}]\n{chunk['text']}"
             )
         return "\n\n".join(formatted_outputs)
     except Exception as e:
