@@ -378,48 +378,37 @@ body {
 
 /* Agent Execution Trace Telemetry Visualizer */
 .trace-accordion {
-  margin-bottom: 0.85rem;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-top: 1px solid rgba(0, 102, 177, 0.5);
-  background: rgba(15, 15, 18, 0.85);
-  backdrop-filter: blur(12px);
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
-}
-
-.trace-accordion:hover {
-  border-color: rgba(0, 102, 177, 0.4);
-  box-shadow: 0 6px 24px rgba(0, 102, 177, 0.15);
+  margin-bottom: 0.75rem;
+  border: 1px solid var(--hairline);
+  background: rgba(13, 13, 13, 0.9);
 }
 
 .trace-toggle-btn {
   width: 100%;
-  background: linear-gradient(90deg, rgba(0, 102, 177, 0.15) 0%, rgba(229, 34, 39, 0.05) 100%);
+  background: rgba(0, 102, 177, 0.15);
   border: none;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid var(--hairline);
   color: #FFFFFF;
-  padding: 0.55rem 0.85rem;
+  padding: 0.45rem 0.75rem;
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   letter-spacing: 1px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   cursor: pointer;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background 0.2s ease;
 }
 
 .trace-toggle-btn:hover {
-  background: linear-gradient(90deg, rgba(0, 102, 177, 0.25) 0%, rgba(229, 34, 39, 0.1) 100%);
+  background: rgba(0, 102, 177, 0.3);
 }
 
 .trace-chevron {
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  font-size: 0.65rem;
-  color: var(--m-blue-light);
+  transition: transform 0.2s ease;
+  font-size: 0.6rem;
+  color: var(--muted);
 }
 
 .trace-accordion.open .trace-chevron {
@@ -428,15 +417,9 @@ body {
 
 .trace-body {
   display: none;
-  padding: 0.75rem;
+  padding: 0.6rem;
   flex-direction: column;
-  gap: 0.6rem;
-  animation: fadeInBody 0.3s ease-out forwards;
-}
-
-@keyframes fadeInBody {
-  from { opacity: 0; transform: translateY(-4px); }
-  to { opacity: 1; transform: translateY(0); }
+  gap: 0.5rem;
 }
 
 .trace-accordion.open .trace-body {
@@ -444,88 +427,23 @@ body {
 }
 
 .trace-detail-card {
-  background: rgba(22, 22, 26, 0.95);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-left: 3px solid var(--m-blue);
-  border-radius: 6px;
-  padding: 0.6rem 0.75rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-  animation: slideInFade 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  transition: transform 0.2s ease, border-color 0.2s ease;
-}
-
-.trace-detail-card:hover {
-  transform: translateY(-1px);
-  border-color: rgba(0, 102, 177, 0.3);
-}
-
-.trace-detail-card.weather-tool {
-  border-left-color: #00A3E0;
-}
-
-.trace-detail-card.rag-tool {
-  border-left-color: var(--m-light-blue);
-}
-
-.trace-detail-card.wiki-tool {
-  border-left-color: var(--m-red);
-}
-
-.arg-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-family: var(--font-code);
-  font-size: 0.65rem;
-  color: #CCCCCC;
-}
-
-.arg-key {
-  color: var(--m-blue-light);
-  font-weight: 600;
-}
-
-.arg-val {
-  color: #88C0D0;
-}
-
-.live-status-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: rgba(0, 102, 177, 0.12);
-  border: 1px solid rgba(0, 102, 177, 0.3);
-  border-radius: 20px;
-  padding: 5px 12px;
-  font-size: 0.72rem;
-  color: #E5E9F0;
-  font-family: var(--font-code);
-  backdrop-filter: blur(4px);
+  background: #141414;
+  border: 1px solid var(--hairline);
+  padding: 0.5rem 0.65rem;
 }
 
 .pulse-dot {
   display: inline-block;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background-color: var(--m-red);
-  box-shadow: 0 0 10px var(--m-red);
+  color: var(--m-red);
+  font-size: 0.7rem;
+  margin-right: 4px;
   animation: pulseDot 1.2s infinite ease-in-out;
 }
 
 @keyframes pulseDot {
-  0% { opacity: 0.4; transform: scale(0.85); box-shadow: 0 0 4px var(--m-red); }
-  50% { opacity: 1; transform: scale(1.25); box-shadow: 0 0 12px var(--m-red); }
-  100% { opacity: 0.4; transform: scale(0.85); box-shadow: 0 0 4px var(--m-red); }
-}
-
-@keyframes slideInFade {
-  0% { opacity: 0; transform: translateY(8px) scale(0.98); }
-  100% { opacity: 1; transform: translateY(0) scale(1); }
+  0% { opacity: 0.3; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.2); }
+  100% { opacity: 0.3; transform: scale(0.8); }
 }
 
 /* Main Content Workspace */

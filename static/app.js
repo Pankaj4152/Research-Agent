@@ -159,6 +159,7 @@ async function handleSendPrompt() {
   const answerContent = bubble.querySelector(".live-answer-content");
 
   let toolTraces = [];
+  let accumulatedText = "";
 
   try {
     const response = await fetch("/api/research/stream", {
@@ -194,25 +195,37 @@ async function handleSendPrompt() {
         try {
           const event = JSON.parse(line);
           if (event.type === "tool_start") {
-            let friendlyName = event.name;
-            if (event.name === "get_weather") friendlyName = "🌦️ Live Weather Telemetry";
-            else if (event.name === "search_local_docs") friendlyName = "📄 Vector Document Search";
-            else if (event.name === "search_wikipedia") friendlyName = "🌐 Global Knowledge Lookup";
-            
-            statusPill.style.display = "inline-flex";
-            statusPill.innerHTML = `<span class="pulse-dot">●</span> Executing <strong>${friendlyName}</strong>...`;
+            statusPill.style.display = "block";
+            statusPill.innerHTML = `<span class="pulse-dot">●</span> Calling tool: <strong>${event.name}</strong> (${JSON.stringify(event.args)})`;
           } else if (event.type === "tool_result") {
             toolTraces.push(event.trace);
-            const traceWrapper = document.createElement("div");
-            traceWrapper.innerHTML = renderTraceCardHtml(event.trace);
-            traceBody.appendChild(traceWrapper.firstElementChild);
+            const traceCard = document.createElement("div");
+            traceCard.className = "trace-detail-card";
+            traceCard.innerHTML = `
+              <div style="display: flex; justify-content: space-between; font-weight: 700; color: #FFFFFF; font-size: 0.72rem;">
+                <span>⚡ ${event.trace.name}</span>
+                <span style="color: var(--m-blue-light);">${event.trace.latency_ms}ms</span>
+              </div>
+              <div style="font-size: 0.66rem; color: var(--muted); margin-top: 3px;">
+                <strong>Args:</strong> ${JSON.stringify(event.trace.args)}
+              </div>
+              <div style="font-size: 0.66rem; color: #BBBBBB; margin-top: 4px; font-family: var(--font-code); background: #000; padding: 6px; border: 1px solid var(--hairline); word-break: break-all;">
+                ${event.trace.result_preview}
+              </div>
+            `;
+            traceBody.appendChild(traceCard);
             traceHeader.textContent = `⚡ AGENT EXECUTION TRACE (${toolTraces.length} TOOL${toolTraces.length > 1 ? 'S' : ''})`;
+            feed.scrollTop = feed.scrollHeight;
+          } else if (event.type === "token") {
+            statusPill.style.display = "none";
+            accumulatedText += event.delta;
+            answerContent.innerHTML = marked.parse(accumulatedText);
             feed.scrollTop = feed.scrollHeight;
           } else if (event.type === "final") {
             activeSessionId = event.session_id;
             saveSessionToList(activeSessionId, prompt);
             statusPill.style.display = "none";
-            answerContent.innerHTML = marked.parse(event.answer);
+            answerContent.innerHTML = marked.parse(event.answer || accumulatedText);
             const traceAccordion = bubble.querySelector(".trace-accordion");
             if (traceAccordion) {
               if (toolTraces.length > 0) {
@@ -237,51 +250,6 @@ async function handleSendPrompt() {
   }
 }
 
-function renderTraceCardHtml(t) {
-  let toolClass = "trace-detail-card";
-  let toolTitle = t.name;
-  let icon = "⚡";
-
-  if (t.name === "get_weather") {
-    toolClass += " weather-tool";
-    toolTitle = "Live Weather Telemetry";
-    icon = "🌦️";
-  } else if (t.name === "search_local_docs") {
-    toolClass += " rag-tool";
-    toolTitle = "Vector Document Search";
-    icon = "📄";
-  } else if (t.name === "search_wikipedia") {
-    toolClass += " wiki-tool";
-    toolTitle = "Global Knowledge Lookup";
-    icon = "🌐";
-  }
-
-  let argsHtml = "";
-  if (t.args && Object.keys(t.args).length > 0) {
-    argsHtml = Object.entries(t.args).map(([k, v]) => 
-      `<span class="arg-pill"><span class="arg-key">${k}:</span> <span class="arg-val">${JSON.stringify(v)}</span></span>`
-    ).join(" ");
-  } else {
-    argsHtml = `<span style="color: var(--muted); font-size: 0.65rem;">None</span>`;
-  }
-
-  return `
-    <div class="${toolClass}">
-      <div style="display: flex; justify-content: space-between; align-items: center; font-weight: 700; color: #FFFFFF; font-size: 0.72rem;">
-        <span style="display: flex; align-items: center; gap: 6px;">${icon} <strong>${toolTitle}</strong></span>
-        <span style="color: var(--m-blue-light); font-weight: 800; font-family: var(--font-code); font-size: 0.68rem;">${t.latency_ms}ms</span>
-      </div>
-      <div style="display: flex; align-items: center; gap: 6px; margin-top: 4px; flex-wrap: wrap;">
-        <span style="font-size: 0.65rem; color: var(--muted); font-weight: 600;">Params:</span>
-        ${argsHtml}
-      </div>
-      <div style="font-size: 0.66rem; color: #D8DEE9; margin-top: 6px; font-family: var(--font-code); background: rgba(0, 0, 0, 0.45); padding: 6px 8px; border-radius: 4px; border: 1px solid rgba(255, 255, 255, 0.05); word-break: break-all; line-height: 1.4;">
-        ${t.result_preview}
-      </div>
-    </div>
-  `;
-}
-
 function appendMessage(role, text, toolTraces = []) {
   const feed = document.getElementById("chat-feed");
 
@@ -298,7 +266,20 @@ function appendMessage(role, text, toolTraces = []) {
   if (role === "agent") {
     let traceHtml = "";
     if (toolTraces && toolTraces.length > 0) {
-      const traceItems = toolTraces.map(t => renderTraceCardHtml(t)).join("");
+      const traceItems = toolTraces.map(t => `
+        <div class="trace-detail-card">
+          <div style="display: flex; justify-content: space-between; font-weight: 700; color: #FFFFFF; font-size: 0.72rem;">
+            <span>⚡ ${t.name}</span>
+            <span style="color: var(--m-blue-light);">${t.latency_ms}ms</span>
+          </div>
+          <div style="font-size: 0.66rem; color: var(--muted); margin-top: 3px;">
+            <strong>Args:</strong> ${JSON.stringify(t.args)}
+          </div>
+          <div style="font-size: 0.66rem; color: #BBBBBB; margin-top: 4px; font-family: var(--font-code); background: #000; padding: 6px; border: 1px solid var(--hairline); word-break: break-all;">
+            ${t.result_preview}
+          </div>
+        </div>
+      `).join("");
 
       traceHtml = `
         <div class="trace-accordion">
