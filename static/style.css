@@ -170,6 +170,41 @@ body {
   margin-bottom: 0.25rem;
 }
 
+.section-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.25rem;
+}
+
+.section-label-row .section-label {
+  margin-bottom: 0;
+}
+
+.btn-icon-plus {
+  background: var(--surface-card);
+  color: var(--primary);
+  border: 1px solid var(--hairline);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1rem;
+  line-height: 1;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 0px;
+  transition: all 0.2s ease;
+}
+
+.btn-icon-plus:hover {
+  background: var(--m-blue-light);
+  border-color: var(--m-blue-light);
+  color: #FFFFFF;
+}
+
 /* Sessions List */
 .sessions-list {
   display: flex;

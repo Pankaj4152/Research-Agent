@@ -57,6 +57,14 @@ function setupEventListeners() {
 
   newChatBtn.addEventListener("click", createNewSession);
 
+  const btnUploadPlus = document.getElementById("btn-upload-plus");
+  if (btnUploadPlus) {
+    btnUploadPlus.addEventListener("click", (e) => {
+      e.stopPropagation();
+      fileInput.click();
+    });
+  }
+
   // File Drag and Drop
   dropZone.addEventListener("click", () => fileInput.click());
   dropZone.addEventListener("dragover", (e) => {

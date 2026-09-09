@@ -28,15 +28,18 @@
         <!-- Sessions populated dynamically -->
       </div>
 
-      <div class="section-label">INGESTED KNOWLEDGE BASE</div>
-      <div id="documents-list" class="sessions-list" style="min-height: 120px; max-height: 220px;">
+      <div class="section-label-row">
+        <span class="section-label">DOCUMENTS INGESTED</span>
+        <button id="btn-upload-plus" class="btn-icon-plus" title="Upload Documents (PDF, MD, TXT)">+</button>
+      </div>
+      <div id="documents-list" class="sessions-list" style="min-height: 120px; max-height: 240px;">
         <!-- Ingested documents list populated dynamically -->
       </div>
 
-      <div class="section-label">KNOWLEDGE INGESTION</div>
       <div id="drop-zone" class="drop-zone">
-        <div class="drop-icon">⚡</div>
-        <div class="drop-text">UPLOAD DOCUMENTS</div>
+        <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+          <span style="color: var(--m-blue-light); font-weight: 700;">⚡ DRAG & DROP OR CLICK TO UPLOAD</span>
+        </div>
         <div class="drop-subtext">SUPPORTS .PDF, .MD, .TXT FORMATS</div>
         <input type="file" id="file-input" accept=".pdf,.md,.txt" multiple style="display: none;">
       </div>
