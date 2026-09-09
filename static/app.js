@@ -34,7 +34,7 @@ async function checkSystemHealth() {
 }
 
 function generateUUID() {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
     const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
     return v.toString(16);
   });
@@ -338,7 +338,7 @@ function selectSession(sessionId) {
         High-performance research platform with real-time external API tools and FAISS vector intelligence.
       </p>
       <div class="prompt-suggestions">
-        <div class="suggestion-card" onclick="useSuggestion('Summarize the RAG architecture from internal documents')">
+        <div class="suggestion-card" onclick="useSuggestion('Summarize the documents')">
           <div class="suggestion-tag">VECTOR DATABASE</div>
           <div class="suggestion-title">Summarize RAG architecture from internal documents</div>
         </div>
@@ -420,7 +420,7 @@ async function deleteSession(sessionId) {
 
   try {
     await fetch(`/api/session/${sessionId}`, { method: "DELETE" });
-  } catch (e) {}
+  } catch (e) { }
 
   if (activeSessionId === sessionId) {
     createNewSession();

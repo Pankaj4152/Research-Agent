@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,6 +9,7 @@
   <!-- Marked.js for markdown rendering -->
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
+
 <body>
   <div id="app-container">
     <!-- Sidebar -->
@@ -29,7 +31,8 @@
       </div>
 
       <div class="section-label-row">
-        <span class="section-label">KNOWLEDGE SOURCES <span id="sources-count" style="color: var(--m-blue-light); font-weight: 800;">(0)</span></span>
+        <span class="section-label">KNOWLEDGE SOURCES <span id="sources-count"
+            style="color: var(--m-blue-light); font-weight: 800;">(0)</span></span>
       </div>
       <div id="documents-list" class="sources-card-grid">
         <!-- NotebookLM-style Source Cards populated dynamically -->
@@ -37,7 +40,8 @@
 
       <div id="drop-zone" class="drop-zone-mini">
         <div style="display: flex; align-items: center; justify-content: center; gap: 6px;">
-          <span class="drop-text" style="color: var(--muted); font-size: 0.72rem; text-transform: uppercase;">⚡ DRAG & DROP FILES TO INGEST</span>
+          <span class="drop-text" style="color: var(--muted); font-size: 0.72rem; text-transform: uppercase;">⚡ DRAG &
+            DROP FILES TO INGEST</span>
         </div>
         <input type="file" id="file-input" accept=".pdf,.md,.txt" multiple style="display: none;">
       </div>
@@ -51,12 +55,13 @@
           <div class="status-dot"></div>
           <span>ENGINEERING SYSTEM ONLINE</span>
         </div>
-        <div id="active-session-label" style="font-size: 0.8rem; color: var(--muted); font-family: var(--font-display); letter-spacing: 1px; text-transform: uppercase;">
+        <div id="active-session-label"
+          style="font-size: 0.8rem; color: var(--muted); font-family: var(--font-display); letter-spacing: 1px; text-transform: uppercase;">
           SESSION ID: <span id="current-session-id-display" style="color: var(--primary);">--</span>
         </div>
         <div style="display: flex; align-items: center; gap: 10px; position: relative;">
           <div class="model-pill">GEMINI 3.1 FLASH-LITE</div>
-          
+
           <!-- Top Right 3 AGENTS LIVE Pill -->
           <div id="agents-pill" class="model-pill agents-pill-button">
             <span style="color: #00FF66; font-size: 0.75rem;">🟢</span>
@@ -102,7 +107,7 @@
             High-performance research platform with real-time external API tools and FAISS vector intelligence.
           </p>
           <div class="prompt-suggestions">
-            <div class="suggestion-card" onclick="useSuggestion('Summarize the RAG architecture from internal documents')">
+            <div class="suggestion-card" onclick="useSuggestion('Summarize the documents')">
               <div class="suggestion-tag">VECTOR DATABASE</div>
               <div class="suggestion-title">Summarize RAG architecture from internal documents</div>
             </div>
@@ -132,4 +137,5 @@
 
   <script src="/app.js"></script>
 </body>
+
 </html>
