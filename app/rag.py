@@ -119,7 +119,8 @@ def create_embeddings(chunks):
     ]
 
     embeddings = embedding_model.encode(
-        texts
+        texts,
+        normalize_embeddings=True
     )
 
     return np.array(
@@ -128,14 +129,14 @@ def create_embeddings(chunks):
 
 
 # -------------------------
-# Create FAISS index
+# Create FAISS index (Cosine Similarity via Inner Product)
 # -------------------------
 
 def create_vector_index(embeddings):
 
     dimension = embeddings.shape[1]
 
-    index = faiss.IndexFlatL2(
+    index = faiss.IndexFlatIP(
         dimension
     )
 
@@ -210,7 +211,7 @@ def load_index():
 
 
 # -------------------------
-# Semantic search
+# Semantic search (Cosine Similarity)
 # -------------------------
 
 def search_documents(
@@ -218,39 +219,40 @@ def search_documents(
     index,
     all_chunks,
     top_k=3,
-    distance_threshold=1.30
+    similarity_threshold=0.45
 ):
 
     query_embedding = embedding_model.encode(
-        [query]
+        [query],
+        normalize_embeddings=True
     )
 
     query_embedding = np.array(
         query_embedding
     ).astype("float32")
 
-    distances, indices = index.search(
+    scores, indices = index.search(
         query_embedding,
         top_k
     )
 
     results = []
 
-    for distance, index_position in zip(
-        distances[0],
+    for score, index_position in zip(
+        scores[0],
         indices[0]
     ):
         if index_position < 0 or index_position >= len(all_chunks):
             continue
 
-        dist_val = float(distance)
-        if distance_threshold is not None and dist_val > distance_threshold:
+        sim_score = float(score)
+        if similarity_threshold is not None and sim_score < similarity_threshold:
             continue
 
         chunk = all_chunks[index_position]
         results.append({
             "chunk": chunk,
-            "distance": dist_val
+            "score": sim_score
         })
 
     return results
@@ -259,22 +261,22 @@ def search_documents(
 _cached_index = None
 _cached_chunks = None
 
-def search_local_docs(query: str, top_k: int = 3, distance_threshold: float = 1.30) -> str:
-    """Search internal/local knowledge base documents for relevant context within a similarity threshold."""
+def search_local_docs(query: str, top_k: int = 3, similarity_threshold: float = 0.45) -> str:
+    """Search internal/local knowledge base documents for relevant context using Cosine Similarity."""
     global _cached_index, _cached_chunks
     try:
         if _cached_index is None or _cached_chunks is None:
             _cached_index, _cached_chunks = load_index()
 
-        results = search_documents(query, _cached_index, _cached_chunks, top_k=top_k, distance_threshold=distance_threshold)
+        results = search_documents(query, _cached_index, _cached_chunks, top_k=top_k, similarity_threshold=similarity_threshold)
         if not results:
-            return f"No local documents found matching query: '{query}' within relevance threshold ({distance_threshold})."
+            return f"No local documents found matching query: '{query}' above similarity threshold ({similarity_threshold * 100:.0f}%)."
 
         formatted_outputs = []
         for i, res in enumerate(results, 1):
             chunk = res["chunk"]
             formatted_outputs.append(
-                f"[Source Document: {chunk['filename']} | Chunk {chunk['chunk_id']} | Distance: {res['distance']:.3f}]\n{chunk['text']}"
+                f"[Source Document: {chunk['filename']} | Chunk {chunk['chunk_id']} | Cosine Similarity: {res['score']:.3f} ({res['score']*100:.1f}%)]\n{chunk['text']}"
             )
         return "\n\n".join(formatted_outputs)
     except Exception as e:
