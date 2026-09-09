@@ -57,12 +57,14 @@ def clear_session(session_id: str) -> bool:
 # Agent Loop
 # -------------------------
 
-def ask_agent(prompt: str, session_id: str | None = None) -> tuple[str, str]:
-    """Execute prompt using Gemini Flash with tool execution and multi-turn session memory."""
+def ask_agent(prompt: str, session_id: str | None = None) -> tuple[str, str, list[dict]]:
+    """Execute prompt using Gemini Flash with tool execution tracking and multi-turn session memory."""
+    import time
     if not session_id:
         session_id = str(uuid.uuid4())
 
     contents = sessions.get(session_id, [])
+    tool_traces = []
 
     contents.append(
         types.Content(
@@ -93,7 +95,7 @@ def ask_agent(prompt: str, session_id: str | None = None) -> tuple[str, str]:
                     "Check your plan/billing at "
                     "https://ai.dev/rate-limit"
                 )
-            return "Could not get a response from the model.", session_id
+            return "Could not get a response from the model.", session_id, tool_traces
 
         # Save Gemini's complete response
         if not response.candidates:
@@ -103,7 +105,7 @@ def ask_agent(prompt: str, session_id: str | None = None) -> tuple[str, str]:
                     exclude_none=True
                 ).get('candidates')
             )
-            return "The model returned no response.", session_id
+            return "The model returned no response.", session_id, tool_traces
 
         model_content = response.candidates[0].content
         contents.append(model_content)
@@ -118,14 +120,23 @@ def ask_agent(prompt: str, session_id: str | None = None) -> tuple[str, str]:
         # No custom function calls. Answer complete.
         if not function_calls:
             sessions[session_id] = contents
-            return response.text, session_id
+            return response.text or "", session_id, tool_traces
 
         # Execute every custom function requested by Gemini
         tool_parts = []
         for function_call in function_calls:
             print("\n[Agent Tool Call]:", function_call.name, "Args:", function_call.args)
+            start_time = time.time()
             result = execute_tool(function_call)
-            print("[Tool Output]:", result)
+            latency_ms = int((time.time() - start_time) * 1000)
+            print("[Tool Output]:", result, f"({latency_ms}ms)")
+
+            tool_traces.append({
+                "name": function_call.name,
+                "args": dict(function_call.args) if function_call.args else {},
+                "result_preview": str(result)[:300] + ("..." if len(str(result)) > 300 else ""),
+                "latency_ms": latency_ms
+            })
 
             tool_parts.append(
                 types.Part.from_function_response(
@@ -168,7 +179,7 @@ if __name__ == "__main__":
                 print("Session memory cleared.\n")
                 continue
 
-            answer, current_session_id = ask_agent(prompt, session_id=current_session_id)
+            answer, current_session_id, traces = ask_agent(prompt, session_id=current_session_id)
             print(f"\nAgent: {answer}\n")
         except (KeyboardInterrupt, EOFError):
             print("\nExiting session.")

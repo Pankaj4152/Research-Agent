@@ -141,7 +141,7 @@ async function handleSendPrompt() {
     if (response.ok) {
       activeSessionId = data.session_id;
       saveSessionToList(activeSessionId, prompt);
-      appendMessage("agent", data.answer);
+      appendMessage("agent", data.answer, data.tool_traces);
     } else {
       appendMessage("agent", `⚠️ Error: ${data.detail || "Server error"}`);
     }
@@ -151,7 +151,7 @@ async function handleSendPrompt() {
   }
 }
 
-function appendMessage(role, text) {
+function appendMessage(role, text, toolTraces = []) {
   const feed = document.getElementById("chat-feed");
 
   const row = document.createElement("div");
@@ -165,7 +165,37 @@ function appendMessage(role, text) {
   bubble.className = "bubble";
 
   if (role === "agent") {
-    bubble.innerHTML = marked.parse(text);
+    let traceHtml = "";
+    if (toolTraces && toolTraces.length > 0) {
+      const traceItems = toolTraces.map(t => `
+        <div class="trace-detail-card">
+          <div style="display: flex; justify-content: space-between; font-weight: 700; color: #FFFFFF; font-size: 0.72rem;">
+            <span>⚡ ${t.name}</span>
+            <span style="color: var(--m-blue-light);">${t.latency_ms}ms</span>
+          </div>
+          <div style="font-size: 0.66rem; color: var(--muted); margin-top: 3px;">
+            <strong>Args:</strong> ${JSON.stringify(t.args)}
+          </div>
+          <div style="font-size: 0.66rem; color: #BBBBBB; margin-top: 4px; font-family: var(--font-code); background: #000; padding: 6px; border: 1px solid var(--hairline); word-break: break-all;">
+            ${t.result_preview}
+          </div>
+        </div>
+      `).join("");
+
+      traceHtml = `
+        <div class="trace-accordion">
+          <button class="trace-toggle-btn" onclick="this.parentElement.classList.toggle('open')">
+            <span>⚡ AGENT EXECUTION TRACE (${toolTraces.length} TOOL${toolTraces.length > 1 ? 'S' : ''})</span>
+            <span class="trace-chevron">▼</span>
+          </button>
+          <div class="trace-body">
+            ${traceItems}
+          </div>
+        </div>
+      `;
+    }
+
+    bubble.innerHTML = traceHtml + marked.parse(text);
   } else {
     bubble.textContent = text;
   }

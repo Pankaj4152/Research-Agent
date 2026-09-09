@@ -35,6 +35,7 @@ class ResearchResponse(BaseModel):
     query: str
     answer: str
     session_id: str
+    tool_traces: list[dict] = []
 
 
 @app.get("/healthz")
@@ -87,13 +88,13 @@ def list_tools():
 
 @app.post("/api/research", response_model=ResearchResponse)
 def research(request: ResearchRequest):
-    """Execute research prompt via AI Agent and return response with multi-turn session state."""
+    """Execute research prompt via AI Agent and return response with multi-turn session state & tool traces."""
     if not request.prompt.strip():
         raise HTTPException(status_code=400, detail="Prompt cannot be empty.")
 
     try:
-        answer, session_id = ask_agent(request.prompt, session_id=request.session_id)
-        return ResearchResponse(query=request.prompt, answer=answer, session_id=session_id)
+        answer, session_id, traces = ask_agent(request.prompt, session_id=request.session_id)
+        return ResearchResponse(query=request.prompt, answer=answer, session_id=session_id, tool_traces=traces)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

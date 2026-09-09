@@ -376,6 +376,62 @@ body {
   margin-top: 0.25rem;
 }
 
+/* Agent Execution Trace Telemetry Visualizer */
+.trace-accordion {
+  margin-bottom: 0.75rem;
+  border: 1px solid var(--hairline);
+  background: rgba(13, 13, 13, 0.9);
+}
+
+.trace-toggle-btn {
+  width: 100%;
+  background: rgba(0, 102, 177, 0.15);
+  border: none;
+  border-bottom: 1px solid var(--hairline);
+  color: #FFFFFF;
+  padding: 0.45rem 0.75rem;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 0.68rem;
+  letter-spacing: 1px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.trace-toggle-btn:hover {
+  background: rgba(0, 102, 177, 0.3);
+}
+
+.trace-chevron {
+  transition: transform 0.2s ease;
+  font-size: 0.6rem;
+  color: var(--muted);
+}
+
+.trace-accordion.open .trace-chevron {
+  transform: rotate(180deg);
+}
+
+.trace-body {
+  display: none;
+  padding: 0.6rem;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.trace-accordion.open .trace-body {
+  display: flex;
+}
+
+.trace-detail-card {
+  background: #141414;
+  border: 1px solid var(--hairline);
+  padding: 0.5rem 0.65rem;
+}
+
 /* Main Content Workspace */
 #main-content {
   flex: 1;
