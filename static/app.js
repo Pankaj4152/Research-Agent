@@ -56,6 +56,23 @@ function setupEventListeners() {
       uploadDocuments(e.target.files);
     }
   });
+
+  // Agents Dropdown Popover Listener
+  const agentsPill = document.getElementById("agents-pill");
+  const agentsDropdown = document.getElementById("agents-dropdown");
+
+  if (agentsPill && agentsDropdown) {
+    agentsPill.addEventListener("click", (e) => {
+      e.stopPropagation();
+      agentsDropdown.classList.toggle("active");
+    });
+
+    document.addEventListener("click", (e) => {
+      if (!agentsPill.contains(e.target)) {
+        agentsDropdown.classList.remove("active");
+      }
+    });
+  }
 }
 
 function useSuggestion(promptText) {

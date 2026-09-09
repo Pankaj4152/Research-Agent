@@ -28,13 +28,8 @@
         <!-- Sessions populated dynamically -->
       </div>
 
-      <div class="section-label">ACTIVE AGENT MODULES</div>
-      <div id="tools-list" class="sessions-list" style="min-height: 90px; max-height: 150px;">
-        <!-- Active tools populated dynamically -->
-      </div>
-
       <div class="section-label">INGESTED KNOWLEDGE BASE</div>
-      <div id="documents-list" class="sessions-list" style="min-height: 80px; max-height: 140px;">
+      <div id="documents-list" class="sessions-list" style="min-height: 120px; max-height: 220px;">
         <!-- Ingested documents list populated dynamically -->
       </div>
 
@@ -58,7 +53,42 @@
         <div id="active-session-label" style="font-size: 0.8rem; color: var(--muted); font-family: var(--font-display); letter-spacing: 1px; text-transform: uppercase;">
           SESSION ID: <span id="current-session-id-display" style="color: var(--primary);">--</span>
         </div>
-        <div class="model-pill">GEMINI 3.1 FLASH-LITE</div>
+        <div style="display: flex; align-items: center; gap: 10px; position: relative;">
+          <div class="model-pill">GEMINI 3.1 FLASH-LITE</div>
+          
+          <!-- Top Right 3 AGENTS LIVE Pill -->
+          <div id="agents-pill" class="model-pill agents-pill-button">
+            <span style="color: #00FF66; font-size: 0.75rem;">🟢</span>
+            <span>3 AGENTS LIVE</span>
+            <span style="font-size: 0.65rem; color: var(--muted);">▼</span>
+
+            <!-- Active Agents Dropdown Popover -->
+            <div id="agents-dropdown" class="agents-dropdown">
+              <div class="dropdown-header">ACTIVE AGENT MODULES (3)</div>
+              <div class="agent-dropdown-item">
+                <span class="agent-dot">🟢</span>
+                <div class="agent-info">
+                  <div class="agent-name">Local Vector RAG Agent</div>
+                  <div class="agent-sub">FAISS Cosine Search (.pdf, .md, .txt)</div>
+                </div>
+              </div>
+              <div class="agent-dropdown-item">
+                <span class="agent-dot">🟢</span>
+                <div class="agent-info">
+                  <div class="agent-name">Live Weather Telemetry</div>
+                  <div class="agent-sub">Open-Meteo Real-Time API</div>
+                </div>
+              </div>
+              <div class="agent-dropdown-item">
+                <span class="agent-dot">🟢</span>
+                <div class="agent-info">
+                  <div class="agent-name">Global Knowledge Agent</div>
+                  <div class="agent-sub">Wikipedia REST API Lookup</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </header>
 
       <div class="m-stripe-divider"></div>

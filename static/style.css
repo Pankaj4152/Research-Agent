@@ -288,15 +288,86 @@ body {
 
 .model-pill {
   font-family: var(--font-display);
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 800;
-  letter-spacing: 1.5px;
+  letter-spacing: 1px;
   text-transform: uppercase;
+  color: var(--primary);
   background: var(--surface-card);
   border: 1px solid var(--hairline);
-  padding: 0.35rem 0.85rem;
+  padding: 0.35rem 0.75rem;
   border-radius: 0px;
-  color: var(--primary);
+}
+
+.agents-pill-button {
+  cursor: pointer;
+  border-color: rgba(0, 102, 177, 0.6);
+  background: rgba(0, 102, 177, 0.12);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  position: relative;
+  user-select: none;
+  transition: all 0.2s ease;
+}
+
+.agents-pill-button:hover {
+  border-color: #0066b1;
+  background: rgba(0, 102, 177, 0.25);
+}
+
+.agents-dropdown {
+  display: none;
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 270px;
+  background: #0d0d0d;
+  border: 1px solid var(--hairline);
+  border-top: 2px solid #0066b1;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+  padding: 0.75rem;
+  z-index: 100;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.agents-dropdown.active {
+  display: flex;
+}
+
+.dropdown-header {
+  font-family: var(--font-display);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: var(--muted);
+  text-transform: uppercase;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.agent-dropdown-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 0.3rem 0;
+}
+
+.agent-dot {
+  font-size: 0.7rem;
+  margin-top: 2px;
+}
+
+.agent-name {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #FFFFFF;
+}
+
+.agent-sub {
+  font-size: 0.66rem;
+  color: var(--muted);
 }
 
 /* Chat Feed */
