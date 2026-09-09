@@ -220,6 +220,14 @@ async function handleSendPrompt() {
             saveSessionToList(activeSessionId, prompt);
             statusPill.style.display = "none";
             answerContent.innerHTML = marked.parse(event.answer);
+            const traceAccordion = bubble.querySelector(".trace-accordion");
+            if (traceAccordion) {
+              if (toolTraces.length > 0) {
+                traceAccordion.classList.remove("open");
+              } else {
+                traceAccordion.style.display = "none";
+              }
+            }
             feed.scrollTop = feed.scrollHeight;
           } else if (event.type === "error") {
             statusPill.style.display = "none";
