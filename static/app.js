@@ -159,7 +159,6 @@ async function handleSendPrompt() {
   const answerContent = bubble.querySelector(".live-answer-content");
 
   let toolTraces = [];
-  let accumulatedText = "";
 
   try {
     const response = await fetch("/api/research/stream", {
@@ -216,16 +215,11 @@ async function handleSendPrompt() {
             traceBody.appendChild(traceCard);
             traceHeader.textContent = `⚡ AGENT EXECUTION TRACE (${toolTraces.length} TOOL${toolTraces.length > 1 ? 'S' : ''})`;
             feed.scrollTop = feed.scrollHeight;
-          } else if (event.type === "token") {
-            statusPill.style.display = "none";
-            accumulatedText += event.delta;
-            answerContent.innerHTML = marked.parse(accumulatedText);
-            feed.scrollTop = feed.scrollHeight;
           } else if (event.type === "final") {
             activeSessionId = event.session_id;
             saveSessionToList(activeSessionId, prompt);
             statusPill.style.display = "none";
-            answerContent.innerHTML = marked.parse(event.answer || accumulatedText);
+            answerContent.innerHTML = marked.parse(event.answer);
             const traceAccordion = bubble.querySelector(".trace-accordion");
             if (traceAccordion) {
               if (toolTraces.length > 0) {
