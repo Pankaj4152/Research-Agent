@@ -47,6 +47,37 @@ def health_check():
     }
 
 
+@app.get("/api/tools")
+def list_tools():
+    """List all registered agent tools and capabilities."""
+    return {
+        "count": 3,
+        "tools": [
+            {
+                "id": "search_local_docs",
+                "name": "Local Vector RAG Agent",
+                "description": "FAISS Cosine Similarity search over ingested documents (.pdf, .md, .txt)",
+                "status": "online",
+                "badge": "VECTOR RAG"
+            },
+            {
+                "id": "get_weather",
+                "name": "Live Weather Telemetry",
+                "description": "Real-time meteorological telemetry lookup via Open-Meteo API",
+                "status": "online",
+                "badge": "LIVE API"
+            },
+            {
+                "id": "search_wikipedia",
+                "name": "Global Knowledge Agent",
+                "description": "Encyclopedic & factual research lookup via Wikipedia REST API",
+                "status": "online",
+                "badge": "GLOBAL DATA"
+            }
+        ]
+    }
+
+
 @app.post("/api/research", response_model=ResearchResponse)
 def research(request: ResearchRequest):
     """Execute research prompt via AI Agent and return response with multi-turn session state."""

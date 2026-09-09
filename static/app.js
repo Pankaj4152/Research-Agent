@@ -8,6 +8,7 @@ let activeSessions = JSON.parse(localStorage.getItem("saved_sessions") || "[]");
 document.addEventListener("DOMContentLoaded", () => {
   setupEventListeners();
   renderSessionList();
+  loadToolsList();
   loadIngestedDocuments();
   selectSession(activeSessionId);
 });
@@ -183,6 +184,39 @@ async function uploadDocuments(filesList) {
     dropZone.querySelector(".drop-text").textContent = originalText;
     const fileInput = document.getElementById("file-input");
     if (fileInput) fileInput.value = "";
+  }
+}
+
+async function loadToolsList() {
+  const container = document.getElementById("tools-list");
+  if (!container) return;
+  try {
+    const res = await fetch("/api/tools");
+    if (res.ok) {
+      const data = await res.json();
+      container.innerHTML = "";
+      if (data.tools && data.tools.length > 0) {
+        data.tools.forEach(tool => {
+          const item = document.createElement("div");
+          item.className = "session-item";
+          item.style.cursor = "default";
+          item.style.display = "flex";
+          item.style.flexDirection = "column";
+          item.style.gap = "2px";
+
+          item.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+              <span style="font-weight: 600; color: #FFFFFF; font-size: 0.75rem;">🟢 ${tool.name}</span>
+              <span style="font-size: 0.60rem; background: rgba(0,102,177,0.2); border: 1px solid var(--primary); color: var(--primary); padding: 1px 4px; font-family: var(--font-display);">${tool.badge}</span>
+            </div>
+            <span style="font-size: 0.65rem; color: var(--muted); line-height: 1.2;">${tool.description}</span>
+          `;
+          container.appendChild(item);
+        });
+      }
+    }
+  } catch (e) {
+    console.log("Could not load active agent modules.");
   }
 }
 
